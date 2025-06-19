@@ -1,121 +1,111 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
-  <title>Tokenizacja RWA</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tokenizacja Aktywów Rzeczywistych</title>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 2rem; }
-    input, button { margin: 0.3rem 0; padding: 0.4rem; width: 100%; }
-    h2 { color: #2a3f54; }
-    #output { margin-top: 1rem; white-space: pre-wrap; background: #f2f2f2; padding: 1rem; border-radius: 6px; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 24px;
+      font-size: 1.4rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #444;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .status {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 0.95rem;
+      color: #333;
+    }
   </style>
 </head>
 <body>
-  <h2>🎯 Tokenizacja aktywów (RWA)</h2>
 
-  <h4>🔐 Stwórz token</h4>
-  <input type="text" id="address" placeholder="Adres właściciela" />
-  <input type="text" id="uri" placeholder="Token URI (np. link lub opis)" />
-  <input type="number" id="value" placeholder="Wartość aktywa (USD)" />
-  <button onclick="mint()">Tokenizuj</button>
+  <div class="container">
+    <h1>Tokenizacja aktywów RWA</h1>
 
-  <h4>📤 Przypisz udziały</h4>
-  <input type="number" id="shareTokenId" placeholder="ID tokenu" />
-  <input type="text" id="shareAddress" placeholder="Adres odbiorcy udziału" />
-  <input type="number" id="sharePercent" placeholder="Procent udziału do przekazania" />
-  <button onclick="assignShare()">Przekaż udział</button>
+    <label for="owner">Adres właściciela:</label>
+    <input type="text" id="owner" placeholder="np. 0x123...">
 
-  <h4>📄 Pokaż szczegóły aktywa</h4>
-  <input type="number" id="infoTokenId" placeholder="ID tokenu" />
-  <button onclick="getInfo()">Pokaż dane</button>
+    <label for="uri">Token URI (opis/link):</label>
+    <input type="text" id="uri" placeholder="np. https://...">
 
-  <div id="output"></div>
+    <button onclick="mint()">Tokenizuj</button>
 
+    <div class="status" id="status"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
   <script>
-    const contractAddress = "TU_WPISZ_ADRES_KONTRAKTU_Z_REMIX";
-    const abi = [ 
-      {
-        "inputs": [
-          { "internalType": "address", "name": "to", "type": "address" },
-          { "internalType": "string", "name": "tokenURI", "type": "string" },
-          { "internalType": "uint256", "name": "marketValueUSD", "type": "uint256" }
-        ],
-        "name": "mint",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          { "internalType": "uint256", "name": "tokenId", "type": "uint256" },
-          { "internalType": "address", "name": "to", "type": "address" },
-          { "internalType": "uint256", "name": "percent", "type": "uint256" }
-        ],
-        "name": "assignShare",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
-        ],
-        "name": "getAssetInfo",
-        "outputs": [
-          { "internalType": "string", "name": "uri", "type": "string" },
-          { "internalType": "uint256", "name": "marketValueUSD", "type": "uint256" },
-          { "internalType": "address[]", "name": "holders", "type": "address[]" },
-          { "internalType": "uint256[]", "name": "percentages", "type": "uint256[]" }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      }
+    const contractAddress = "TU_WPISZ_ADRES_KONTRAKTU";
+    const contractABI = [
+      // Tu wklej ABI swojego kontraktu
     ];
 
-    const web3 = new Web3(window.ethereum);
-    const contract = new web3.eth.Contract(abi, contractAddress);
-
     async function mint() {
-      const to = document.getElementById("address").value;
+      const owner = document.getElementById("owner").value;
       const uri = document.getElementById("uri").value;
-      const value = document.getElementById("value").value;
-      const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+      const status = document.getElementById("status");
 
-      contract.methods.mint(to, uri, value).send({ from: accounts[0] })
-        .then(tx => show(`✅ Token utworzony! TX: ${tx.transactionHash}`))
-        .catch(err => show("❌ Błąd: " + err.message));
-    }
+      try {
+        if (!window.ethereum) throw new Error("Zainstaluj MetaMask!");
 
-    async function assignShare() {
-      const tokenId = document.getElementById("shareTokenId").value;
-      const to = document.getElementById("shareAddress").value;
-      const percent = document.getElementById("sharePercent").value;
-      const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+        await ethereum.request({ method: 'eth_requestAccounts' });
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-      contract.methods.assignShare(tokenId, to, percent).send({ from: accounts[0] })
-        .then(tx => show(`✅ Udział ${percent}% przypisany do ${to}. TX: ${tx.transactionHash}`))
-        .catch(err => show("❌ Błąd: " + err.message));
-    }
-
-    async function getInfo() {
-      const tokenId = document.getElementById("infoTokenId").value;
-
-      contract.methods.getAssetInfo(tokenId).call()
-        .then(data => {
-          let result = `🔍 Informacje o tokenie #${tokenId}\n`;
-          result += `📄 URI: ${data[0]}\n`;
-          result += `💵 Wartość rynkowa: $${data[1]}\n`;
-          result += `👥 Udziałowcy:\n`;
-          for (let i = 0; i < data[2].length; i++) {
-            result += `- ${data[2][i]} → ${data[3][i]}%\n`;
-          }
-          show(result);
-        })
-        .catch(err => show("❌ Błąd: " + err.message));
-    }
-
-    function show(msg) {
-      document.getElementById("output").innerText = msg;
+        const tx = await contract.mint(owner, uri);
+        status.innerText = "Trwa tokenizacja... Czekaj na potwierdzenie...";
+        await tx.wait();
+        status.innerText = "Sukces! Token został utworzony.";
+      } catch (err) {
+        console.error(err);
+        status.innerText = "Błąd: " + err.message;
+      }
     }
   </script>
 </body>
